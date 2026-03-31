@@ -2,149 +2,77 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DCR Live Cam</title>
+<title>DCR Live Camera</title>
 
 <style>
 body {
   margin: 0;
   font-family: 'Courier New', monospace;
-  background: #000;
+  background: radial-gradient(circle, #1a1a1a, #000);
   color: #fff;
+  text-align: center;
 }
 
-/* TOP BAR */
-.topbar {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 50px;
-  color: #f5d742;
-  font-size: 14px;
+h1 {
+  margin-top: 20px;
   letter-spacing: 2px;
+  color: #f5d742;
 }
 
-/* CAMERA */
-.camera-container {
+.container {
+  margin-top: 20px;
   position: relative;
-  width: 100%;
-  max-width: 500px;
-  margin: auto;
+  display: inline-block;
+  border: 4px solid #333;
+  box-shadow: 0 0 30px rgba(255,255,255,0.2);
 }
 
 video, canvas {
-  width: 100%;
-  border-radius: 12px;
+  width: 500px;
+  border-radius: 10px;
 }
 
-/* TIMESTAMP */
 .overlay {
   position: absolute;
   bottom: 10px;
   left: 10px;
-  font-size: 12px;
   color: #ffeb3b;
+  font-size: 14px;
 }
 
-/* CONTROLS */
 .controls {
-  position: fixed;
-  bottom: 25px;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 40px;
+  margin-top: 20px;
 }
 
-/* CAPTURE BUTTON */
-.capture-btn {
-  width: 75px;
-  height: 75px;
-  border-radius: 50%;
+button {
   background: #f5d742;
-  border: 6px solid #fff;
-  cursor: pointer;
-  transition: 0.1s;
-}
-
-/* SAVE BUTTON */
-.save-btn {
-  background: rgba(255,255,255,0.1);
   border: none;
-  padding: 14px;
-  border-radius: 12px;
-  color: #fff;
+  padding: 12px 20px;
+  margin: 5px;
+  font-weight: bold;
   cursor: pointer;
+  border-radius: 8px;
 }
 
-/* FLASH */
-#flash {
-  position: fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
-  background:white;
-  opacity:0;
-  pointer-events:none;
-  transition: opacity 0.15s;
-}
-
-/* ADS */
-#adModal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.9);
-  display: none;
-  justify-content: center;
-  align-items: center;
-}
-
-#adContent {
-  background: #111;
-  padding: 20px;
-  border-radius: 12px;
-  text-align: center;
-}
-
-/* MOBILE */
-@media (max-width: 600px) {
-  .capture-btn {
-    width: 65px;
-    height: 65px;
-  }
+button:hover {
+  background: #fff176;
 }
 </style>
 </head>
 
 <body>
 
-<div class="topbar">📸 DCR LIVE CAM</div>
+<h1>📸 DCR LIVE CAM</h1>
 
-<div class="camera-container">
-  <video id="video" autoplay playsinline></video>
+<div class="container">
+  <video id="video" autoplay></video>
   <canvas id="canvas" style="display:none;"></canvas>
   <div class="overlay" id="timestamp"></div>
 </div>
 
 <div class="controls">
-  <button class="save-btn" onclick="download()">💾</button>
-  <div class="capture-btn" onclick="capture()"></div>
-</div>
-
-<div id="flash"></div>
-
-<!-- ADS -->
-<div id="adModal">
-  <div id="adContent">
-    <h3>🔥 Sponsored</h3>
-    <p>Iklan lu masuk sini 😎</p>
-    <button onclick="closeAd()">Close</button>
-  </div>
+  <button onclick="capture()">📷 Capture</button>
+  <button onclick="download()">💾 Download</button>
 </div>
 
 <script>
@@ -152,19 +80,14 @@ const video = document.getElementById('video');
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 const timestampEl = document.getElementById('timestamp');
-const adModal = document.getElementById('adModal');
 
-let captureCount = 0;
-
-// CAMERA
-navigator.mediaDevices.getUserMedia({
-  video: { facingMode: "environment" }
-})
+// akses kamera
+navigator.mediaDevices.getUserMedia({ video: true })
 .then(stream => {
   video.srcObject = stream;
 });
 
-// TIMESTAMP (REALTIME)
+// update timestamp realtime
 setInterval(() => {
   const now = new Date();
   const formatted =
@@ -176,82 +99,38 @@ setInterval(() => {
   timestampEl.textContent = formatted;
 }, 1000);
 
-// FLASH
-function flash(){
-  const f = document.getElementById("flash");
-  f.style.opacity = 1;
-  setTimeout(()=> f.style.opacity = 0, 120);
-}
-
-// CAPTURE (FIXED VERSION)
+// capture + efek
 function capture(){
-  const btn = document.querySelector('.capture-btn');
-  btn.style.transform = "scale(0.9)";
-  setTimeout(()=> btn.style.transform = "scale(1)", 100);
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
 
-  flash();
+  ctx.drawImage(video, 0, 0);
 
-  const width = video.videoWidth;
-  const height = video.videoHeight;
-
-  canvas.width = width;
-  canvas.height = height;
-
-  // CLEAR CANVAS (FIX BUG)
-  ctx.clearRect(0, 0, width, height);
-
-  ctx.drawImage(video, 0, 0, width, height);
-
-  let imgData = ctx.getImageData(0,0,width,height);
+  let imgData = ctx.getImageData(0,0,canvas.width,canvas.height);
   let data = imgData.data;
 
-  // DCR EFFECT
   for(let i=0;i<data.length;i+=4){
-    data[i] *= 1.1;
-    data[i+1] *= 1.05;
-    data[i+2] *= 0.85;
+    data[i] *= 1.1;     // red
+    data[i+1] *= 1.05;  // green
+    data[i+2] *= 0.85;  // blue
   }
 
   ctx.putImageData(imgData,0,0);
 
-  // CONSISTENT TIMESTAMP POSITION
-  const padding = Math.max(15, width * 0.02);
-
-  ctx.fillStyle = "#ffeb3b";
-  ctx.font = `${Math.max(14, width * 0.035)}px monospace`;
-  ctx.shadowColor = "black";
-  ctx.shadowBlur = 4;
-
-  ctx.fillText(
-    timestampEl.textContent,
-    padding,
-    height - padding
-  );
+  // timestamp di gambar
+  ctx.fillStyle = "yellow";
+  ctx.font = "20px monospace";
+  ctx.fillText(timestampEl.textContent, 10, canvas.height - 10);
 
   canvas.style.display = "block";
-
-  captureCount++;
-
-  if(captureCount % 3 === 0){
-    showAd();
-  }
 }
 
-// DOWNLOAD
+// download hasil
 function download(){
   const link = document.createElement('a');
   link.download = "dcr-photo.png";
   link.href = canvas.toDataURL();
   link.click();
-}
-
-// ADS
-function showAd(){
-  adModal.style.display = "flex";
-}
-
-function closeAd(){
-  adModal.style.display = "none";
 }
 </script>
 
