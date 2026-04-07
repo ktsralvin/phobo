@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Photobooth</title>
+<title>Phobo</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -16,7 +16,7 @@ body {
   text-align: center;
 }
 
-/* VIDEO PORTRAIT */
+/* VIDEO */
 video {
   width: 240px;
   aspect-ratio: 3 / 4;
@@ -41,15 +41,16 @@ button, select {
   font-weight: bold;
 }
 
-/* STRIP */
+/* 🔥 FRAME STRIP */
 .strip {
   margin-top: 20px;
-  background: #000;
-  padding: 15px;
+  background: white;
+  padding: 20px 15px;
   display: inline-block;
   border-radius: 12px;
 }
 
+/* FOTO */
 .strip img {
   width: 200px;
   aspect-ratio: 3 / 4;
@@ -59,14 +60,14 @@ button, select {
   border-radius: 6px;
 }
 
-/* FLASH FIX */
+/* FLASH */
 #flash {
   position: fixed;
   top:0; left:0;
   width:100%; height:100%;
   background:white;
   opacity:0;
-  pointer-events:none; /* 🔥 FIX UTAMA */
+  pointer-events:none;
   transition:0.2s;
   z-index:999;
 }
@@ -80,7 +81,6 @@ button, select {
   align-items:center;
   justify-content:center;
   background: rgba(0,0,0,0.7);
-  z-index:1000;
 }
 
 .modal-content {
@@ -121,8 +121,7 @@ button, select {
 <div id="modal">
   <div class="modal-content">
     <h2>Donate Us!</h2>
-    <p>Scan QR</p>
-    <button id="closeModal">Close</button>
+    <button id="closeModal">Tutup</button>
   </div>
 </div>
 
@@ -161,11 +160,9 @@ filterSelect.addEventListener("change", () => {
 function runCountdown(sec){
   return new Promise(res=>{
     countdownEl.innerText = sec;
-
     let i = setInterval(()=>{
       sec--;
       countdownEl.innerText = sec;
-
       if(sec<=0){
         clearInterval(i);
         countdownEl.innerText="";
@@ -188,7 +185,7 @@ captureBtn.onclick = async ()=>{
   show();
 };
 
-// FOTO 3:4
+// FOTO PORTRAIT
 function takePhoto(){
   return new Promise(res=>{
     let h = video.videoHeight;
@@ -255,27 +252,34 @@ function show(){
 // RETRY
 retryBtn.onclick = ()=>{
   retryCount++;
-
   if(retryCount>=2){
     modal.style.display="flex";
     retryCount=0;
   }
-
   photos=[];
   result.innerHTML="";
   captureBtn.style.display="inline-block";
 };
 
-// DOWNLOAD STRIP
+// 🔥 DOWNLOAD DENGAN FRAME
 downloadBtn.onclick = ()=>{
   let c=document.createElement("canvas");
   let x=c.getContext("2d");
 
-  let w=400;
-  let h=w*4/3;
+  let photoW=400;
+  let photoH=photoW*4/3;
 
-  c.width=w;
-  c.height=h*photos.length;
+  let padding=30;
+  let gap=20;
+
+  let totalH = padding + (photoH * photos.length) + (gap * (photos.length-1)) + padding;
+
+  c.width = photoW + padding*2;
+  c.height = totalH;
+
+  // background putih
+  x.fillStyle="white";
+  x.fillRect(0,0,c.width,c.height);
 
   let loaded=0;
 
@@ -284,7 +288,9 @@ downloadBtn.onclick = ()=>{
     img.src=p;
 
     img.onload=()=>{
-      x.drawImage(img,0,i*h,w,h);
+      let y = padding + i*(photoH+gap);
+      x.drawImage(img, padding, y, photoW, photoH);
+
       loaded++;
       if(loaded===photos.length){
         let a=document.createElement("a");
@@ -299,13 +305,11 @@ downloadBtn.onclick = ()=>{
 // ZIP
 zipBtn.onclick = async ()=>{
   let zip=new JSZip();
-
   photos.forEach((p,i)=>{
     zip.file("photo"+(i+1)+".png",p.split(",")[1],{base64:true});
   });
 
   let blob=await zip.generateAsync({type:"blob"});
-
   let a=document.createElement("a");
   a.href=URL.createObjectURL(blob);
   a.download="photos.zip";
