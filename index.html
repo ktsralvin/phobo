@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Phobo</title>
+<title>Photobooth</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -16,7 +16,6 @@ body {
   text-align: center;
 }
 
-/* VIDEO */
 video {
   width: 240px;
   aspect-ratio: 3 / 4;
@@ -36,12 +35,6 @@ button, select {
   cursor: pointer;
 }
 
-.countdown {
-  font-size: 60px;
-  font-weight: bold;
-}
-
-/* 🔥 FRAME STRIP */
 .strip {
   margin-top: 20px;
   background: white;
@@ -50,7 +43,6 @@ button, select {
   border-radius: 12px;
 }
 
-/* FOTO */
 .strip img {
   width: 200px;
   aspect-ratio: 3 / 4;
@@ -60,7 +52,6 @@ button, select {
   border-radius: 6px;
 }
 
-/* FLASH */
 #flash {
   position: fixed;
   top:0; left:0;
@@ -69,10 +60,8 @@ button, select {
   opacity:0;
   pointer-events:none;
   transition:0.2s;
-  z-index:999;
 }
 
-/* MODAL */
 #modal {
   position: fixed;
   top:0; left:0;
@@ -81,12 +70,6 @@ button, select {
   align-items:center;
   justify-content:center;
   background: rgba(0,0,0,0.7);
-}
-
-.modal-content {
-  background:#111;
-  padding:20px;
-  border-radius:12px;
 }
 </style>
 </head>
@@ -110,18 +93,18 @@ button, select {
 <br>
 
 <button id="captureBtn">Capture</button>
-<button id="retryBtn">Reset</button>
+<button id="retryBtn">Ulangi</button>
 <button id="downloadBtn">Download</button>
-<button id="zipBtn">Cut Photos</button>
+<button id="zipBtn">Download ZIP</button>
 
 <div id="result"></div>
 
 <div id="flash"></div>
 
 <div id="modal">
-  <div class="modal-content">
-    <h2>Donate Us!</h2>
-    <button id="closeModal">Tutup</button>
+  <div style="background:#111;padding:20px;border-radius:12px;">
+    <h2>Promo</h2>
+    <button onclick="modal.style.display='none'">Tutup</button>
   </div>
 </div>
 
@@ -135,7 +118,6 @@ const zipBtn = document.getElementById("zipBtn");
 const result = document.getElementById("result");
 const flashEl = document.getElementById("flash");
 const modal = document.getElementById("modal");
-const closeModalBtn = document.getElementById("closeModal");
 const countdownEl = document.getElementById("countdown");
 
 let canvas = document.createElement("canvas");
@@ -148,21 +130,48 @@ let retryCount = 0;
 navigator.mediaDevices.getUserMedia({video:true})
 .then(s => video.srcObject = s);
 
-// PREVIEW FILTER
-filterSelect.addEventListener("change", () => {
+// PREVIEW FILTER (tetap pakai CSS biar smooth)
+filterSelect.onchange = ()=>{
   let f = filterSelect.value;
   if(f==="bw") video.style.filter="grayscale(1)";
   else if(f==="vhs") video.style.filter="contrast(1.3) saturate(1.5)";
   else video.style.filter="none";
-});
+};
+
+// 🔥 MANUAL FILTER (iOS SAFE)
+function applyFilter(ctx,w,h){
+  let f = filterSelect.value;
+  let img = ctx.getImageData(0,0,w,h);
+  let d = img.data;
+
+  for(let i=0;i<d.length;i+=4){
+    let r=d[i], g=d[i+1], b=d[i+2];
+
+    if(f==="bw"){
+      let gray = 0.3*r + 0.59*g + 0.11*b;
+      d[i]=d[i+1]=d[i+2]=gray;
+    }
+
+    if(f==="vhs"){
+      d[i]=r*1.2;
+      d[i+1]=g*1.1;
+      d[i+2]=b*1.3;
+
+      let n=(Math.random()-0.5)*40;
+      d[i]+=n; d[i+1]+=n; d[i+2]+=n;
+    }
+  }
+
+  ctx.putImageData(img,0,0);
+}
 
 // COUNTDOWN
 function runCountdown(sec){
   return new Promise(res=>{
-    countdownEl.innerText = sec;
-    let i = setInterval(()=>{
+    countdownEl.innerText=sec;
+    let i=setInterval(()=>{
       sec--;
-      countdownEl.innerText = sec;
+      countdownEl.innerText=sec;
       if(sec<=0){
         clearInterval(i);
         countdownEl.innerText="";
@@ -185,7 +194,7 @@ captureBtn.onclick = async ()=>{
   show();
 };
 
-// FOTO PORTRAIT
+// FOTO
 function takePhoto(){
   return new Promise(res=>{
     let h = video.videoHeight;
@@ -196,12 +205,9 @@ function takePhoto(){
 
     let offsetX = (video.videoWidth - w) / 2;
 
-    ctx.filter = getFilter();
     ctx.drawImage(video, offsetX, 0, w, h, 0, 0, w, h);
 
-    if(filterSelect.value==="vhs"){
-      addNoise(ctx,w,h);
-    }
+    applyFilter(ctx,w,h); // 🔥 penting
 
     flash();
 
@@ -209,23 +215,6 @@ function takePhoto(){
 
     setTimeout(res,500);
   });
-}
-
-function getFilter(){
-  if(filterSelect.value==="bw") return "grayscale(1)";
-  if(filterSelect.value==="vhs") return "contrast(1.3) saturate(1.5)";
-  return "none";
-}
-
-// NOISE
-function addNoise(ctx,w,h){
-  let img=ctx.getImageData(0,0,w,h);
-  let d=img.data;
-  for(let i=0;i<d.length;i+=4){
-    let n=(Math.random()-0.5)*30;
-    d[i]+=n; d[i+1]+=n; d[i+2]+=n;
-  }
-  ctx.putImageData(img,0,0);
 }
 
 // FLASH
@@ -252,16 +241,17 @@ function show(){
 // RETRY
 retryBtn.onclick = ()=>{
   retryCount++;
-  if(retryCount>=2){
+  if(retryCount>=3){
     modal.style.display="flex";
     retryCount=0;
   }
+
   photos=[];
   result.innerHTML="";
   captureBtn.style.display="inline-block";
 };
 
-// 🔥 DOWNLOAD DENGAN FRAME
+// DOWNLOAD STRIP (frame)
 downloadBtn.onclick = ()=>{
   let c=document.createElement("canvas");
   let x=c.getContext("2d");
@@ -272,12 +262,11 @@ downloadBtn.onclick = ()=>{
   let padding=30;
   let gap=20;
 
-  let totalH = padding + (photoH * photos.length) + (gap * (photos.length-1)) + padding;
+  let totalH = padding + (photoH*photos.length) + gap*(photos.length-1) + padding;
 
   c.width = photoW + padding*2;
   c.height = totalH;
 
-  // background putih
   x.fillStyle="white";
   x.fillRect(0,0,c.width,c.height);
 
@@ -289,7 +278,7 @@ downloadBtn.onclick = ()=>{
 
     img.onload=()=>{
       let y = padding + i*(photoH+gap);
-      x.drawImage(img, padding, y, photoW, photoH);
+      x.drawImage(img,padding,y,photoW,photoH);
 
       loaded++;
       if(loaded===photos.length){
@@ -305,18 +294,18 @@ downloadBtn.onclick = ()=>{
 // ZIP
 zipBtn.onclick = async ()=>{
   let zip=new JSZip();
+
   photos.forEach((p,i)=>{
     zip.file("photo"+(i+1)+".png",p.split(",")[1],{base64:true});
   });
 
   let blob=await zip.generateAsync({type:"blob"});
+
   let a=document.createElement("a");
   a.href=URL.createObjectURL(blob);
   a.download="photos.zip";
   a.click();
 };
-
-closeModalBtn.onclick = ()=> modal.style.display="none";
 </script>
 
 </body>
