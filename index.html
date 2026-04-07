@@ -45,8 +45,9 @@ button:hover {
 }
 
 .countdown {
-  font-size: 48px;
+  font-size: 60px;
   margin: 10px;
+  font-weight: bold;
 }
 
 .strip {
@@ -62,6 +63,42 @@ button:hover {
   width: 220px;
   margin-bottom: 8px;
   border-radius: 6px;
+}
+
+/* FLASH */
+#flash {
+  position: fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:white;
+  opacity:0;
+  pointer-events:none;
+  transition: opacity 0.2s;
+  z-index: 999;
+}
+
+/* MODAL */
+#modal {
+  position: fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background: rgba(0,0,0,0.7);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background:#111;
+  padding:20px;
+  border-radius:12px;
+  width:300px;
+  text-align:center;
 }
 </style>
 </head>
@@ -85,7 +122,7 @@ button:hover {
 <div class="countdown" id="countdown"></div>
 
 <div class="controls">
-  <button onclick="startCapture()">Capture</button>
+  <button id="captureBtn" onclick="startCapture()">Capture</button>
   <button onclick="retry()">Ulangi</button>
   <button onclick="downloadStrip()">Download</button>
   <button onclick="downloadZip()">Download ZIP</button>
@@ -93,6 +130,19 @@ button:hover {
 
 <div id="result"></div>
 
+</div>
+
+<!-- FLASH -->
+<div id="flash"></div>
+
+<!-- MODAL -->
+<div id="modal">
+  <div class="modal-content">
+    <h2>🎉 Promo</h2>
+    <p>Scan QR untuk bonus!</p>
+    <div style="background:#eee;height:120px;margin:10px;border-radius:8px;"></div>
+    <button onclick="closeModal()">Tutup</button>
+  </div>
 </div>
 
 <script>
@@ -116,7 +166,7 @@ function applyFilter() {
   return "none";
 }
 
-// NOISE (VHS effect)
+// VHS NOISE
 function addNoise(ctx, w, h) {
   let imageData = ctx.getImageData(0, 0, w, h);
   let data = imageData.data;
@@ -129,6 +179,16 @@ function addNoise(ctx, w, h) {
   }
 
   ctx.putImageData(imageData, 0, 0);
+}
+
+// FLASH EFFECT
+function flashEffect() {
+  let flash = document.getElementById("flash");
+  flash.style.opacity = 1;
+
+  setTimeout(() => {
+    flash.style.opacity = 0;
+  }, 120);
 }
 
 // COUNTDOWN
@@ -152,28 +212,35 @@ function countdown(sec) {
 
 // CAPTURE
 async function startCapture() {
+  document.getElementById("captureBtn").style.display = "none";
   photos = [];
 
   for (let i = 0; i < 4; i++) {
     await countdown(3);
-    takePhoto();
+    await takePhoto();
   }
 
   showResult();
 }
 
 function takePhoto() {
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
+  return new Promise(resolve => {
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
 
-  ctx.filter = applyFilter();
-  ctx.drawImage(video, 0, 0);
+    ctx.filter = applyFilter();
+    ctx.drawImage(video, 0, 0);
 
-  if (document.getElementById("filter").value === "vhs") {
-    addNoise(ctx, canvas.width, canvas.height);
-  }
+    if (document.getElementById("filter").value === "vhs") {
+      addNoise(ctx, canvas.width, canvas.height);
+    }
 
-  photos.push(canvas.toDataURL("image/png"));
+    flashEffect();
+
+    photos.push(canvas.toDataURL("image/png"));
+
+    setTimeout(resolve, 500);
+  });
 }
 
 // SHOW RESULT
@@ -193,17 +260,18 @@ function showResult() {
   div.appendChild(strip);
 }
 
-// RETRY + ADS
+// RETRY + MODAL
 function retry() {
   retryCount++;
 
   if (retryCount >= 3) {
-    alert("🔥 Iklan muncul (simulasi ads)");
+    openModal();
     retryCount = 0;
   }
 
   photos = [];
   document.getElementById("result").innerHTML = "";
+  document.getElementById("captureBtn").style.display = "inline-block";
 }
 
 // DOWNLOAD STRIP
@@ -252,6 +320,15 @@ async function downloadZip() {
   link.href = URL.createObjectURL(content);
   link.download = "photos.zip";
   link.click();
+}
+
+// MODAL
+function openModal() {
+  document.getElementById("modal").style.display = "flex";
+}
+
+function closeModal() {
+  document.getElementById("modal").style.display = "none";
 }
 </script>
 
