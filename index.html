@@ -344,10 +344,18 @@ function takePhoto(){
     ctx.drawImage(video, offsetX, 0, w, h, 0, 0, w, h);
     applyFilter(ctx,w,h);
 
+    flash();
+
     photos.push(canvas.toDataURL());
 
     setTimeout(res,200);
   });
+}
+
+/* FLASH */
+function flash(){
+  flashEl.style.opacity=1;
+  setTimeout(()=>flashEl.style.opacity=0,120);
 }
 
 /* SHOW */
