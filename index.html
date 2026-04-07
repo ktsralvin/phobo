@@ -72,7 +72,7 @@ button, select {
   background: rgba(0,0,0,0.7);
 }
 
-/* FRAME MODAL */
+/* 🔥 FRAME MODAL */
 #frameModal {
   position: fixed;
   top:0; left:0;
@@ -82,43 +82,16 @@ button, select {
   align-items:center;
   justify-content:center;
   z-index:999;
-  padding:20px;
-  box-sizing:border-box;
 }
 
-.frame-container {
-  background:#111;
-  padding:20px;
-  border-radius:16px;
-  width:100%;
-  max-width:400px;
-  max-height:90vh;
-  overflow-y:auto;
-}
-
-/* GRID */
-#frameOptions {
-  display:grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap:12px;
-  margin-top:15px;
-}
-
-/* MOBILE */
-@media (max-width:480px){
-  #frameOptions {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-/* FRAME OPTION */
 .frame-option {
-  padding:10px;
+  display:inline-block;
+  margin:15px;
+  padding:12px;
   border-radius:14px;
   cursor:pointer;
   border:2px solid transparent;
   transition:0.2s;
-  -webkit-tap-highlight-color: transparent;
 }
 
 .frame-option:hover {
@@ -129,26 +102,17 @@ button, select {
   border:2px solid #00ffcc;
 }
 
-/* PREVIEW */
 .frame-preview {
-  width:100%;
+  width:80px;
   padding:10px 8px;
   border-radius:10px;
 }
 
 .slot {
   width:100%;
-  height:50px;
+  height:60px;
   border-radius:6px;
-  margin-bottom:6px;
-}
-
-/* BUTTON MOBILE */
-.frame-container button {
-  width:100%;
-  margin-top:15px;
-  padding:12px;
-  font-size:16px;
+  margin-bottom:8px;
 }
 </style>
 </head>
@@ -159,8 +123,8 @@ button, select {
 
 <!-- FRAME PICKER -->
 <div id="frameModal">
-  <div class="frame-container">
-    <h2 style="margin-top:0;">Choose Frame</h2>
+  <div style="background:#111;padding:25px;border-radius:16px;text-align:center;">
+    <h2>Choose Frame</h2>
 
     <div id="frameOptions">
 
@@ -196,6 +160,7 @@ button, select {
 
     </div>
 
+    <br>
     <button onclick="confirmFrame()">Use Frame</button>
   </div>
 </div>
@@ -263,7 +228,7 @@ frameOptions.forEach(el=>{
   };
 });
 
-// CONFIRM FRAME
+// CONFIRM
 function confirmFrame(){
   if(!selectedFrame){
     alert("Pilih frame dulu!");
