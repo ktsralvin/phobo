@@ -20,8 +20,11 @@ body {
   padding: 20px;
 }
 
+/* ✅ FIX RATIO VIDEO */
 video {
   width: 300px;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
   border-radius: 12px;
   border: 3px solid #333;
 }
@@ -58,9 +61,12 @@ button:hover {
   border-radius: 10px;
 }
 
+/* ✅ FIX RATIO HASIL */
 .strip img {
   display: block;
   width: 220px;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
   margin-bottom: 8px;
   border-radius: 6px;
 }
@@ -109,7 +115,7 @@ button:hover {
 
 <h2>📸 Photobooth</h2>
 
-<select id="filter">
+<select id="filter" onchange="applyPreviewFilter()">
   <option value="none">Normal</option>
   <option value="bw">Black & White</option>
   <option value="vhs">VHS Vintage</option>
@@ -157,7 +163,16 @@ let retryCount = 0;
 navigator.mediaDevices.getUserMedia({ video: true })
 .then(stream => video.srcObject = stream);
 
-// FILTER
+// ✅ PREVIEW FILTER (BIAR SAMA DENGAN HASIL)
+function applyPreviewFilter() {
+  let f = document.getElementById("filter").value;
+
+  if (f === "bw") video.style.filter = "grayscale(1)";
+  else if (f === "vhs") video.style.filter = "contrast(1.3) saturate(1.5)";
+  else video.style.filter = "none";
+}
+
+// FILTER (UNTUK CANVAS)
 function applyFilter() {
   let f = document.getElementById("filter").value;
 
@@ -181,7 +196,7 @@ function addNoise(ctx, w, h) {
   ctx.putImageData(imageData, 0, 0);
 }
 
-// FLASH EFFECT
+// FLASH
 function flashEffect() {
   let flash = document.getElementById("flash");
   flash.style.opacity = 1;
@@ -223,13 +238,20 @@ async function startCapture() {
   showResult();
 }
 
+// ✅ FIX 4:3 + CROP TENGAH
 function takePhoto() {
   return new Promise(resolve => {
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+
+    let w = video.videoWidth;
+    let h = w * 3 / 4;
+
+    canvas.width = w;
+    canvas.height = h;
+
+    let offsetY = (video.videoHeight - h) / 2;
 
     ctx.filter = applyFilter();
-    ctx.drawImage(video, 0, 0);
+    ctx.drawImage(video, 0, offsetY, w, h, 0, 0, w, h);
 
     if (document.getElementById("filter").value === "vhs") {
       addNoise(ctx, canvas.width, canvas.height);
@@ -243,7 +265,7 @@ function takePhoto() {
   });
 }
 
-// SHOW RESULT
+// SHOW
 function showResult() {
   let div = document.getElementById("result");
   div.innerHTML = "";
@@ -260,7 +282,7 @@ function showResult() {
   div.appendChild(strip);
 }
 
-// RETRY + MODAL
+// RETRY
 function retry() {
   retryCount++;
 
@@ -274,16 +296,16 @@ function retry() {
   document.getElementById("captureBtn").style.display = "inline-block";
 }
 
-// DOWNLOAD STRIP
+// ✅ DOWNLOAD STRIP FIX RATIO
 function downloadStrip() {
   let c = document.createElement("canvas");
   let ctx2 = c.getContext("2d");
 
   let width = 400;
-  let height = 400 * photos.length;
+  let h = width * 3 / 4;
 
   c.width = width;
-  c.height = height;
+  c.height = h * photos.length;
 
   let loaded = 0;
 
@@ -292,7 +314,7 @@ function downloadStrip() {
     img.src = src;
 
     img.onload = () => {
-      ctx2.drawImage(img, 0, i * 400, width, 400);
+      ctx2.drawImage(img, 0, i * h, width, h);
       loaded++;
 
       if (loaded === photos.length) {
@@ -305,7 +327,7 @@ function downloadStrip() {
   });
 }
 
-// DOWNLOAD ZIP
+// ZIP
 async function downloadZip() {
   let zip = new JSZip();
 
@@ -330,6 +352,9 @@ function openModal() {
 function closeModal() {
   document.getElementById("modal").style.display = "none";
 }
+
+// INIT
+applyPreviewFilter();
 </script>
 
 </body>
