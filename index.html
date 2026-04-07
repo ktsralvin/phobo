@@ -55,8 +55,7 @@ button, select {
 /* FLASH */
 #flash {
   position: fixed;
-  top:0; left:0;
-  width:100%; height:100%;
+  inset:0;
   background:white;
   opacity:0;
   pointer-events:none;
@@ -66,8 +65,7 @@ button, select {
 /* PROMO */
 #modal {
   position: fixed;
-  top:0; left:0;
-  width:100%; height:100%;
+  inset:0;
   display:none;
   align-items:center;
   justify-content:center;
@@ -102,28 +100,19 @@ button, select {
   margin-top:15px;
 }
 
-@media(max-width:480px){
-  .frame-options {
-    grid-template-columns: repeat(2,1fr);
-  }
-}
-
 /* OPTION */
 .frame-option {
-  border-radius:14px;
   cursor:pointer;
-  transition:0.2s;
 }
 
-/* INNER */
+/* INNER (cuma spacing) */
 .frame-inner {
   padding:10px;
-  border-radius:12px;
 }
 
-/* HIGHLIGHT */
-.frame-option.active {
-  box-shadow: 0 0 0 2px #00ffcc;
+/* 🔥 HIGHLIGHT FIX (NEMPEL KE PREVIEW) */
+.frame-option.active .frame-preview {
+  box-shadow: 0 0 0 3px #00ffcc, 0 0 12px rgba(0,255,204,0.5);
 }
 
 /* PREVIEW */
@@ -131,6 +120,7 @@ button, select {
   width:100%;
   padding:6px;
   border-radius:10px;
+  transition:0.2s;
 }
 
 /* SLOT */
@@ -150,7 +140,7 @@ button, select {
 <!-- FRAME MODAL -->
 <div id="frameModal">
   <div class="frame-box">
-    <h3>Select Frame</h3>
+    <h3>Pilih Frame</h3>
 
     <div class="frame-options">
 
@@ -189,7 +179,7 @@ button, select {
 
     </div>
 
-    <button onclick="confirmFrame()">Use Frame</button>
+    <button onclick="confirmFrame()">Gunakan Frame</button>
   </div>
 </div>
 
@@ -202,7 +192,6 @@ button, select {
 <br>
 
 <video id="video" autoplay playsinline></video>
-
 <div id="countdown"></div>
 
 <br>
@@ -216,9 +205,11 @@ button, select {
 
 <div id="flash"></div>
 
+<!-- PROMO -->
 <div id="modal">
   <div style="background:#111;padding:20px;border-radius:12px;">
     <h2>Promo</h2>
+    <p>🔥 Diskon cetak photobooth minggu ini!</p>
     <button onclick="modal.style.display='none'">Tutup</button>
   </div>
 </div>
@@ -247,7 +238,12 @@ let ctx = canvas.getContext("2d");
 let photos = [];
 let retryCount = 0;
 
-/* FRAME PICKER */
+/* INITIAL */
+retryBtn.style.display = "none";
+downloadBtn.style.display = "none";
+zipBtn.style.display = "none";
+
+/* FRAME SELECT */
 frameOptions.forEach(el=>{
   el.onclick = ()=>{
     frameOptions.forEach(e=>e.classList.remove("active"));
@@ -269,7 +265,7 @@ function confirmFrame(){
 navigator.mediaDevices.getUserMedia({video:true})
 .then(s => video.srcObject = s);
 
-/* FILTER */
+/* FILTER PREVIEW */
 filterSelect.onchange = ()=>{
   let f = filterSelect.value;
   if(f==="bw") video.style.filter="grayscale(1)";
@@ -328,6 +324,10 @@ captureBtn.onclick = async ()=>{
   }
 
   show();
+
+  retryBtn.style.display = "inline-block";
+  downloadBtn.style.display = "inline-block";
+  zipBtn.style.display = "inline-block";
 };
 
 /* FOTO */
@@ -377,14 +377,19 @@ function show(){
 /* RETRY */
 retryBtn.onclick = ()=>{
   retryCount++;
-  if(retryCount>=2){
+
+  if(retryCount >= 2){
     modal.style.display="flex";
-    retryCount=0;
+    retryCount = 0;
   }
 
   photos=[];
   result.innerHTML="";
+
   captureBtn.style.display="inline-block";
+  retryBtn.style.display="none";
+  downloadBtn.style.display="none";
+  zipBtn.style.display="none";
 
   frameModal.style.display="flex";
 };
@@ -427,6 +432,23 @@ downloadBtn.onclick = ()=>{
       }
     }
   });
+};
+
+/* CUT PHOTOS */
+zipBtn.onclick = async ()=>{
+  const zip = new JSZip();
+
+  photos.forEach((p,i)=>{
+    let base64 = p.split(',')[1];
+    zip.file(`photo_${i+1}.png`, base64, {base64:true});
+  });
+
+  const content = await zip.generateAsync({type:"blob"});
+
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(content);
+  a.download = "photos.zip";
+  a.click();
 };
 </script>
 
