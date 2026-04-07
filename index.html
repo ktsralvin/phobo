@@ -26,13 +26,40 @@ video {
 }
 
 button, select {
-  padding: 10px;
-  margin: 5px;
-  border-radius: 8px;
-  border: none;
-  background: #222;
+  padding: 10px 16px;
+  margin: 6px;
+  background: transparent;
   color: white;
   cursor: pointer;
+
+  /* sketch style */
+  border: 2px solid white;
+  border-radius: 0;
+  
+  /* efek "hand drawn" */
+  box-shadow: 
+    2px 2px 0 white,
+    4px 4px 0 rgba(255,255,255,0.3);
+
+  font-weight: bold;
+  letter-spacing: 0.5px;
+
+  transition: 0.15s;
+}
+
+button:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 
+    3px 3px 0 #f8f8ff,
+    6px 6px 0 rgba(0,255,204,0.3);
+  border-color: #f8f8ff;
+  color: #f8f8ff;
+}
+
+button:active {
+  transform: translate(2px, 2px);
+  box-shadow: 
+    1px 1px 0 #006400;
 }
 
 /* STRIP */
@@ -92,6 +119,46 @@ button, select {
   max-width:360px;
 }
 
+.frame-gif {
+  width: 120px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  opacity: 0.9;
+  box-shadow: 0 0 20px rgba(0,255,204,0.3);
+  display: block;
+  margin: 10px auto;
+  max-width: 140px;
+}
+
+select {
+  padding: 10px 35px 10px 12px;
+  margin: 5px;
+  border-radius: 6px;
+  border: 1px solid #444;
+  background: #111;
+  color: white;
+  cursor: pointer;
+
+  /* penting: reset efek sketch */
+  box-shadow: none;
+  transform: none;
+
+  /* custom arrow */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  background-image: url("data:image/svg+xml;utf8,<svg fill='white' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+}
+
+select:hover {
+  border-color: #006400;
+  
+}
+
 /* GRID */
 .frame-options {
   display:grid;
@@ -110,9 +177,9 @@ button, select {
   padding:10px;
 }
 
-/* 🔥 HIGHLIGHT FIX (NEMPEL KE PREVIEW) */
+/* HIGHLIGHT FIX (NEMPEL KE PREVIEW) */
 .frame-option.active .frame-preview {
-  box-shadow: 0 0 0 3px #00ffcc, 0 0 12px rgba(0,255,204,0.5);
+  box-shadow: 0 0 0 4px #006400, 0 0 12px rgba(0,255,204,0.5);
 }
 
 /* PREVIEW */
@@ -140,7 +207,10 @@ button, select {
 <!-- FRAME MODAL -->
 <div id="frameModal">
   <div class="frame-box">
-    <h3>Pilih Frame</h3>
+    <h3>Welcome to Phobo</h3>
+    <a href="https://www.instagram.com/kautsaralvin" style="color: white; text-decoration: none; font-weight: bold;">About Phobo</a>
+
+    <img src="assets/gif/anim.gif" class="frame-gif">
 
     <div class="frame-options">
 
@@ -179,11 +249,12 @@ button, select {
 
     </div>
 
-    <button onclick="confirmFrame()">Gunakan Frame</button>
+    <button onclick="confirmFrame()">Select Frame</button>
   </div>
 </div>
 
 <select id="filter">
+  <option value="none">Select Filter</option>
   <option value="none">Normal</option>
   <option value="bw">Black & White</option>
   <option value="vhs">VHS Vintage</option>
@@ -254,7 +325,7 @@ frameOptions.forEach(el=>{
 
 function confirmFrame(){
   if(!selectedFrame){
-    alert("Pilih frame dulu!");
+    alert("Select frame first!");
     return;
   }
   frameColor = selectedFrame;
