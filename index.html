@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Photobooth</title>
+<title>Phobo</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -123,9 +123,9 @@ button:hover {
 
 <div class="controls">
   <button id="captureBtn" onclick="startCapture()">Capture</button>
-  <button onclick="retry()">Ulangi</button>
+  <button onclick="retry()">Reset</button>
   <button onclick="downloadStrip()">Download</button>
-  <button onclick="downloadZip()">Download ZIP</button>
+  <button onclick="downloadZip()">Cut photos</button>
 </div>
 
 <div id="result"></div>
@@ -138,8 +138,8 @@ button:hover {
 <!-- MODAL -->
 <div id="modal">
   <div class="modal-content">
-    <h2>🎉 Promo</h2>
-    <p>Scan QR untuk bonus!</p>
+    <h2>Support our web!</h2>
+    <p>Scan QRIS!</p>
     <div style="background:#eee;height:120px;margin:10px;border-radius:8px;"></div>
     <button onclick="closeModal()">Tutup</button>
   </div>
@@ -264,7 +264,7 @@ function showResult() {
 function retry() {
   retryCount++;
 
-  if (retryCount >= 3) {
+  if (retryCount >= 2) {
     openModal();
     retryCount = 0;
   }
