@@ -35,7 +35,7 @@ button, select {
   cursor: pointer;
 }
 
-/* 🔥 STRIP (DINAMIS) */
+/* STRIP */
 .strip {
   margin-top: 20px;
   padding: 20px 15px;
@@ -86,22 +86,33 @@ button, select {
 
 .frame-option {
   display:inline-block;
-  margin:10px;
-  padding:10px;
-  border-radius:12px;
+  margin:15px;
+  padding:12px;
+  border-radius:14px;
   cursor:pointer;
   border:2px solid transparent;
+  transition:0.2s;
 }
 
-.frame-preview {
-  width:80px;
-  height:140px;
-  padding:8px;
-  border-radius:10px;
+.frame-option:hover {
+  transform: scale(1.05);
 }
 
 .frame-option.active {
   border:2px solid #00ffcc;
+}
+
+.frame-preview {
+  width:80px;
+  padding:10px 8px;
+  border-radius:10px;
+}
+
+.slot {
+  width:100%;
+  height:60px;
+  border-radius:6px;
+  margin-bottom:8px;
 }
 </style>
 </head>
@@ -110,23 +121,41 @@ button, select {
 
 <h2>📸 Phobo</h2>
 
-<!-- 🔥 FRAME PICKER -->
+<!-- FRAME PICKER -->
 <div id="frameModal">
-  <div style="background:#111;padding:20px;border-radius:12px;">
+  <div style="background:#111;padding:25px;border-radius:16px;text-align:center;">
     <h2>Choose Frame</h2>
 
     <div id="frameOptions">
 
+      <!-- PUTIH -->
       <div class="frame-option" data-color="white">
-        <div class="frame-preview" style="background:white;"></div>
+        <div class="frame-preview" style="background:white;">
+          <div class="slot" style="background:#ddd;"></div>
+          <div class="slot" style="background:#ddd;"></div>
+          <div class="slot" style="background:#ddd;"></div>
+          <div class="slot" style="background:#ddd;"></div>
+        </div>
       </div>
 
+      <!-- HITAM -->
       <div class="frame-option" data-color="black">
-        <div class="frame-preview" style="background:black;"></div>
+        <div class="frame-preview" style="background:black;">
+          <div class="slot" style="background:#222;"></div>
+          <div class="slot" style="background:#222;"></div>
+          <div class="slot" style="background:#222;"></div>
+          <div class="slot" style="background:#222;"></div>
+        </div>
       </div>
 
+      <!-- ABU -->
       <div class="frame-option" data-color="gray">
-        <div class="frame-preview" style="background:gray;"></div>
+        <div class="frame-preview" style="background:gray;">
+          <div class="slot" style="background:#bbb;"></div>
+          <div class="slot" style="background:#bbb;"></div>
+          <div class="slot" style="background:#bbb;"></div>
+          <div class="slot" style="background:#bbb;"></div>
+        </div>
       </div>
 
     </div>
@@ -190,7 +219,7 @@ let ctx = canvas.getContext("2d");
 let photos = [];
 let retryCount = 0;
 
-// 🔥 PILIH FRAME (UI)
+// PILIH FRAME
 frameOptions.forEach(el=>{
   el.onclick = ()=>{
     frameOptions.forEach(e=>e.classList.remove("active"));
@@ -199,7 +228,7 @@ frameOptions.forEach(el=>{
   };
 });
 
-// 🔥 CONFIRM FRAME
+// CONFIRM
 function confirmFrame(){
   if(!selectedFrame){
     alert("Pilih frame dulu!");
@@ -209,7 +238,7 @@ function confirmFrame(){
   frameModal.style.display = "none";
 }
 
-// 🔥 MUNCUL SAAT LOAD
+// LOAD
 window.onload = ()=>{
   frameModal.style.display = "flex";
 };
@@ -316,13 +345,12 @@ function flash(){
   setTimeout(()=>flashEl.style.opacity=0,120);
 }
 
-// SHOW (🔥 FIX FRAME PREVIEW)
+// SHOW
 function show(){
   result.innerHTML="";
   let div=document.createElement("div");
   div.className="strip";
-
-  div.style.background = frameColor; // 🔥 penting
+  div.style.background = frameColor;
 
   photos.forEach(p=>{
     let img=document.createElement("img");
