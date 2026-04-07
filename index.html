@@ -35,9 +35,9 @@ button, select {
   cursor: pointer;
 }
 
+/* 🔥 STRIP (DINAMIS) */
 .strip {
   margin-top: 20px;
-  background: white;
   padding: 20px 15px;
   display: inline-block;
   border-radius: 12px;
@@ -71,12 +71,70 @@ button, select {
   justify-content:center;
   background: rgba(0,0,0,0.7);
 }
+
+/* 🔥 FRAME MODAL */
+#frameModal {
+  position: fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  background: rgba(0,0,0,0.85);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:999;
+}
+
+.frame-option {
+  display:inline-block;
+  margin:10px;
+  padding:10px;
+  border-radius:12px;
+  cursor:pointer;
+  border:2px solid transparent;
+}
+
+.frame-preview {
+  width:80px;
+  height:140px;
+  padding:8px;
+  border-radius:10px;
+}
+
+.frame-option.active {
+  border:2px solid #00ffcc;
+}
 </style>
 </head>
 
 <body>
 
 <h2>📸 Phobo</h2>
+
+<!-- 🔥 FRAME PICKER -->
+<div id="frameModal">
+  <div style="background:#111;padding:20px;border-radius:12px;">
+    <h2>Choose Frame</h2>
+
+    <div id="frameOptions">
+
+      <div class="frame-option" data-color="white">
+        <div class="frame-preview" style="background:white;"></div>
+      </div>
+
+      <div class="frame-option" data-color="black">
+        <div class="frame-preview" style="background:black;"></div>
+      </div>
+
+      <div class="frame-option" data-color="gray">
+        <div class="frame-preview" style="background:gray;"></div>
+      </div>
+
+    </div>
+
+    <br>
+    <button onclick="confirmFrame()">Use Frame</button>
+  </div>
+</div>
 
 <select id="filter">
   <option value="none">Normal</option>
@@ -120,17 +178,47 @@ const flashEl = document.getElementById("flash");
 const modal = document.getElementById("modal");
 const countdownEl = document.getElementById("countdown");
 
+const frameModal = document.getElementById("frameModal");
+const frameOptions = document.querySelectorAll(".frame-option");
+
+let frameColor = null;
+let selectedFrame = null;
+
 let canvas = document.createElement("canvas");
 let ctx = canvas.getContext("2d");
 
 let photos = [];
 let retryCount = 0;
 
+// 🔥 PILIH FRAME (UI)
+frameOptions.forEach(el=>{
+  el.onclick = ()=>{
+    frameOptions.forEach(e=>e.classList.remove("active"));
+    el.classList.add("active");
+    selectedFrame = el.dataset.color;
+  };
+});
+
+// 🔥 CONFIRM FRAME
+function confirmFrame(){
+  if(!selectedFrame){
+    alert("Pilih frame dulu!");
+    return;
+  }
+  frameColor = selectedFrame;
+  frameModal.style.display = "none";
+}
+
+// 🔥 MUNCUL SAAT LOAD
+window.onload = ()=>{
+  frameModal.style.display = "flex";
+};
+
 // CAMERA
 navigator.mediaDevices.getUserMedia({video:true})
 .then(s => video.srcObject = s);
 
-// PREVIEW FILTER (tetap pakai CSS biar smooth)
+// FILTER PREVIEW
 filterSelect.onchange = ()=>{
   let f = filterSelect.value;
   if(f==="bw") video.style.filter="grayscale(1)";
@@ -138,7 +226,7 @@ filterSelect.onchange = ()=>{
   else video.style.filter="none";
 };
 
-// 🔥 MANUAL FILTER (iOS SAFE)
+// FILTER APPLY
 function applyFilter(ctx,w,h){
   let f = filterSelect.value;
   let img = ctx.getImageData(0,0,w,h);
@@ -183,6 +271,11 @@ function runCountdown(sec){
 
 // CAPTURE
 captureBtn.onclick = async ()=>{
+  if(!frameColor){
+    alert("Pilih frame dulu!");
+    return;
+  }
+
   captureBtn.style.display="none";
   photos=[];
 
@@ -207,7 +300,7 @@ function takePhoto(){
 
     ctx.drawImage(video, offsetX, 0, w, h, 0, 0, w, h);
 
-    applyFilter(ctx,w,h); // 🔥 penting
+    applyFilter(ctx,w,h);
 
     flash();
 
@@ -223,11 +316,13 @@ function flash(){
   setTimeout(()=>flashEl.style.opacity=0,120);
 }
 
-// SHOW
+// SHOW (🔥 FIX FRAME PREVIEW)
 function show(){
   result.innerHTML="";
   let div=document.createElement("div");
   div.className="strip";
+
+  div.style.background = frameColor; // 🔥 penting
 
   photos.forEach(p=>{
     let img=document.createElement("img");
@@ -241,6 +336,7 @@ function show(){
 // RETRY
 retryBtn.onclick = ()=>{
   retryCount++;
+
   if(retryCount>=2){
     modal.style.display="flex";
     retryCount=0;
@@ -249,9 +345,15 @@ retryBtn.onclick = ()=>{
   photos=[];
   result.innerHTML="";
   captureBtn.style.display="inline-block";
+
+  frameColor = null;
+  selectedFrame = null;
+  frameOptions.forEach(e=>e.classList.remove("active"));
+
+  frameModal.style.display="flex";
 };
 
-// DOWNLOAD STRIP (frame)
+// DOWNLOAD
 downloadBtn.onclick = ()=>{
   let c=document.createElement("canvas");
   let x=c.getContext("2d");
@@ -267,7 +369,7 @@ downloadBtn.onclick = ()=>{
   c.width = photoW + padding*2;
   c.height = totalH;
 
-  x.fillStyle="white";
+  x.fillStyle = frameColor || "white";
   x.fillRect(0,0,c.width,c.height);
 
   let loaded=0;
