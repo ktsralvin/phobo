@@ -276,7 +276,7 @@ select:hover {
 <br>
 
 <button id="captureBtn">Capture</button>
-<button id="retryBtn">Retake</button>
+<button id="retryBtn">Retry</button>
 <button id="downloadBtn">Download</button>
 <button id="zipBtn">Cut Photos</button>
 
@@ -287,10 +287,19 @@ select:hover {
 <!-- PROMO -->
 <div id="modal">
   <div style="background:#111;padding:20px;border-radius:12px;">
-    <h2 style="font-family: 'Great Vibes', cursive; font-size: 40px; color: white;">Ads</h2>
+    <h2 style="font-family: 'Great Vibes', cursive; font-size: 40px; color: white;">
+      Ads
+    </h2>
+
     <p>😜Haloo kamu bisa pasang iklan disini!</p>
-    <img src="assets/gif/anim2.gif" class="frame-gif">
-    <button onclick="modal.style.display='none'">Exit</button>
+
+    <!-- ✅ IKLAN (SUDAH BISA DIKLIK) -->
+    <a href="https://shopee.co.id/sb.mleyot" target="_blank" rel="noopener noreferrer" id="adsLink">
+      <img src="assets/gif/anim3.gif" class="frame-gif">
+    </a>
+
+    <!-- ✅ EXIT BUTTON -->
+    <button id="adsExitBtn">Exit</button>
   </div>
 </div>
 
@@ -308,6 +317,61 @@ const countdownEl = document.getElementById("countdown");
 
 const frameModal = document.getElementById("frameModal");
 const frameOptions = document.querySelectorAll(".frame-option");
+
+// ===== TRACKING SYSTEM =====
+
+// GANTI INI
+const API_URL = "https://script.google.com/macros/s/AKfycbyFCFljCDKDyiRLKxJVncSXkc4hA1gw5VmctxLaKgKfxherAvcoCiPMuw--ghi5RVQP/exec";
+
+// Visitor ID
+let visitorId = localStorage.getItem("visitor_id");
+
+if (!visitorId) {
+  visitorId = "v_" + Math.random().toString(36).substr(2, 9);
+  localStorage.setItem("visitor_id", visitorId);
+}
+
+// FLAGS
+let timePassed = false;
+let interacted = false;
+let viewSent = false;
+
+// ⏱️ waktu tinggal 3 detik
+setTimeout(() => {
+  timePassed = true;
+  checkView();
+}, 3000);
+
+// 🖱️ interaction = klik frame
+frameOptions.forEach(el=>{
+  el.addEventListener("click", () => {
+    interacted = true;
+    checkView();
+  });
+});
+
+// 🔥 kirim view
+function checkView(){
+  if(timePassed && interacted && !viewSent){
+
+    // hindari double dalam 1 session
+    if(sessionStorage.getItem("view_sent")) return;
+
+    viewSent = true;
+    sessionStorage.setItem("view_sent", "true");
+
+    fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        visitorId: visitorId,
+        type: "view",
+        page: "home"
+      })
+    });
+
+    console.log("🔥 View counted");
+  }
+}
 
 let frameColor = "white";
 let selectedFrame = null;
@@ -395,6 +459,16 @@ function runCountdown(sec){
 
 /* CAPTURE */
 captureBtn.onclick = async ()=>{
+// 📸 capture tracking
+fetch(API_URL, {
+  method: "POST",
+  body: JSON.stringify({
+    visitorId: visitorId,
+    type: "capture",
+    page: "home"
+  })
+});
+
   captureBtn.style.display="none";
   photos=[];
 
@@ -458,7 +532,7 @@ function show(){
 retryBtn.onclick = ()=>{
   retryCount++;
 
-  if(retryCount >= 2){
+  if(retryCount >= 1){
     modal.style.display="flex";
     retryCount = 0;
   }
@@ -530,6 +604,42 @@ zipBtn.onclick = async ()=>{
   a.download = "photos.zip";
   a.click();
 };
+
+const adsLink = document.getElementById("adsLink");
+const adsExitBtn = document.getElementById("adsExitBtn");
+
+// 🎯 CLICK ADS
+adsLink.addEventListener("click", () => {
+  fetch(API_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      visitorId: visitorId,
+      type: "click_ads",
+      page: "home"
+    })
+  });
+
+  console.log("🎯 Ads clicked");
+});
+
+// 🚪 EXIT ADS
+adsExitBtn.addEventListener("click", () => {
+
+  fetch(API_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      visitorId: visitorId,
+      type: "exit_ads",
+      page: "home"
+    })
+  });
+
+  modal.style.display = "none";
+
+  console.log("🚪 Ads exited");
+});
+
+
 </script>
 
 </body>
